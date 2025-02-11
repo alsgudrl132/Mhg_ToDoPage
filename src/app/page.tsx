@@ -16,21 +16,18 @@ export default function Home() {
 
   const createBoard = () => {
     // 빈 값일 경우 추가하지 않음
-    if (title === "") {
-      return;
-    } else {
-      const newBoard: BoardType = {
-        id: Date.now(),
-        title: title,
-      };
-      const curBoards = [...boards, newBoard];
-      setBoards(curBoards);
+    if (title === "") return;
+    const newBoard: BoardType = {
+      id: Date.now(),
+      title: title,
+    };
+    const curBoards = [...boards, newBoard];
+    setBoards(curBoards);
 
-      localStorage.setItem("boards", JSON.stringify(curBoards));
+    localStorage.setItem("boards", JSON.stringify(curBoards));
 
-      console.log(curBoards);
-      setTitle("");
-    }
+    console.log(curBoards);
+    setTitle("");
   };
 
   useEffect(() => {
@@ -52,6 +49,7 @@ export default function Home() {
             placeholder="새 보드 이름"
             className="max-w-xs bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200"
             onChange={(e) => setTitle(e.target.value)}
+            value={title}
           />
           <Button
             type="button"
@@ -63,9 +61,9 @@ export default function Home() {
             보드 추가
           </Button>
         </div>
-        <div className="flex gap-6 pb-6">
+        <div className="flex gap-6 pb-6 flex-wrap">
           {boards.map((board) => (
-            <Board key={board.id} title={board.title} />
+            <Board key={board.id} title={board.title} id={board.id} />
           ))}
         </div>
       </div>

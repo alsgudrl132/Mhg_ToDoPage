@@ -1,5 +1,5 @@
 import { Plus, X } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import Todo from "./todo";
 import { Button } from "../ui/button";
 import {
@@ -15,9 +15,25 @@ import { Label } from "@radix-ui/react-label";
 
 interface BoardProps {
   title: string;
+  id: number;
 }
 
-function Board({ title }: BoardProps) {
+function Board({ title, id }: BoardProps) {
+  const [desc, setDesc] = useState<string>("");
+
+  const createTodo = () => {
+    if (desc === "") return;
+    const storageData = JSON.parse(localStorage.getItem("boards") || "[]");
+    const idx = storageData.findIndex((board: BoardProps) => board.id === id);
+    if (!storageData[idx].desc) {
+      storageData[idx].desc = [desc];
+    } else {
+      storageData[idx].desc.push(desc);
+    }
+    localStorage.setItem("boards", JSON.stringify(storageData));
+    setDesc("");
+  };
+
   return (
     <div className="mt-10 p-6 w-auto bg-white border border-gray-200 rounded-lg shadow-sm">
       <div className="flex items-center justify-between p-3 rounded-lg mb-4">
@@ -27,7 +43,7 @@ function Board({ title }: BoardProps) {
           className="text-gray-400 hover:text-red-500 cursor-pointer transition-colors"
         />
       </div>
-      <Todo desc="" />
+      <Todo id={id} />
       <div>
         <Dialog>
           <DialogTrigger asChild>
@@ -49,9 +65,9 @@ function Board({ title }: BoardProps) {
                 </Label>
                 <Input
                   id="name"
-                  value=""
                   placeholder="새 Todo 이름"
                   className="col-span-3"
+                  onChange={(e) => setDesc(e.target.value)}
                 />
               </div>
             </div>
@@ -59,6 +75,7 @@ function Board({ title }: BoardProps) {
               <Button
                 className="bg-blue-500 hover:bg-blue-600 text-white"
                 type="submit"
+                onClick={createTodo}
               >
                 추가하기
               </Button>
