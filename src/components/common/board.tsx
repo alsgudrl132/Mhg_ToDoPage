@@ -1,7 +1,7 @@
 import { Pencil, Plus, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Todo from "./todo";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,86 +12,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-label";
-import { BoardType, DescriptionType } from "@/types/board";
 
-interface OwnProps {
-  id: number;
-  title: string;
-}
-
-function Board({ title, id }: OwnProps) {
-  const [isOpenDialog, setIsOpenDialog] = useState<boolean>(false);
-  const [isOpenBoardDialog, setIsOpenBoardDialog] = useState<boolean>(false);
-  const [description, setDescription] = useState<DescriptionType>({
-    id: 0,
-    text: "",
-  });
-  const [editingTitle, setEditingTitle] = useState<string>("");
-  const [newTitle, setNewTitle] = useState<string>("");
-
-  const getStorageData = () => {
-    return JSON.parse(localStorage.getItem("boards") || "[]");
-  };
-
-  const getIdx = (storageData: BoardType[]) => {
-    return storageData.findIndex((board: BoardType) => board.id === id);
-  };
-
-  const createTodo = (e: object) => {
-    if (description.text === "") return;
-    if (e && "key" in e && e.key !== "Enter") return;
-    const storageData = getStorageData();
-    const idx = getIdx(storageData);
-
-    const newDescription = {
-      id: Date.now(),
-      text: description.text,
-    };
-
-    if (!storageData[idx].description) {
-      storageData[idx].description = [newDescription];
-    } else {
-      storageData[idx].description.push(newDescription);
-    }
-    localStorage.setItem("boards", JSON.stringify(storageData));
-    setDescription({ id: 0, text: "" });
-    setIsOpenDialog(false);
-  };
-
-  const editTitle = () => {
-    setIsOpenBoardDialog(true);
-    const storageData = getStorageData();
-    const idx = getIdx(storageData);
-    setEditingTitle(storageData[idx].title);
-  };
-
-  const updateTitle = (e: object) => {
-    if (editingTitle === "") return;
-    if (e && "key" in e && e.key !== "Enter") return;
-
-    const storageData = getStorageData();
-    const idx = getIdx(storageData);
-    storageData[idx].title = editingTitle;
-    localStorage.setItem("boards", JSON.stringify(storageData));
-    setNewTitle(editingTitle);
-    setIsOpenBoardDialog(false);
-  };
-
-  useEffect(() => {
-    setNewTitle(title);
-  }, [title]);
-
+function Board() {
   return (
     <div className="mt-10 p-6 w-auto bg-white border border-gray-200 rounded-lg shadow-sm">
       <div className="flex gap-2 p-3 rounded-lg mb-4">
-        <p className="text-gray-800 font-medium text-sm break-all w-40">
-          {newTitle}
-        </p>
+        <p className="text-gray-800 font-medium text-sm break-all w-40">제목</p>
         <div className="flex gap-2">
           <Pencil
             size={16}
             className="text-gray-400 hover:text-blue-500 cursor-pointer transition-colors"
-            onClick={() => editTitle()}
           />
           <X
             size={16}
@@ -100,9 +30,9 @@ function Board({ title, id }: OwnProps) {
         </div>
       </div>
       <div className="border-b-2 mb-5"></div>
-      <Todo id={id} />
+      <Todo />
       <div>
-        <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+        <Dialog>
           <DialogTrigger asChild>
             <Button
               variant="outline"
@@ -125,10 +55,6 @@ function Board({ title, id }: OwnProps) {
                   placeholder="새 Todo 이름"
                   className="col-span-3"
                   maxLength={300}
-                  onChange={(e) =>
-                    setDescription({ ...description, text: e.target.value })
-                  }
-                  onKeyDown={(e) => createTodo(e)}
                 />
               </div>
             </div>
@@ -136,14 +62,13 @@ function Board({ title, id }: OwnProps) {
               <Button
                 className="bg-blue-500 hover:bg-blue-600 text-white"
                 type="submit"
-                onClick={createTodo}
               >
                 추가하기
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-        <Dialog open={isOpenBoardDialog} onOpenChange={setIsOpenBoardDialog}>
+        <Dialog>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>타이틀 변경</DialogTitle>
@@ -157,9 +82,6 @@ function Board({ title, id }: OwnProps) {
                   id="name"
                   placeholder="새 타이틀 이름"
                   className="col-span-3"
-                  value={editingTitle}
-                  onChange={(e) => setEditingTitle(e.target.value)}
-                  onKeyDown={(e) => updateTitle(e)}
                 />
               </div>
             </div>
@@ -167,7 +89,6 @@ function Board({ title, id }: OwnProps) {
               <Button
                 className="bg-blue-500 hover:bg-blue-600 text-white"
                 type="submit"
-                onClick={updateTitle}
               >
                 변경하기
               </Button>
