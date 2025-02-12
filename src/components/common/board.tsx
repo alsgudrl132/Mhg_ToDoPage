@@ -18,32 +18,51 @@ interface BoardProps {
   title: string;
 }
 
+interface BoardType {
+  id: number;
+  title: string;
+  description: {
+    id: number;
+    text: string;
+  };
+}
+
 function Board({ title, id }: BoardProps) {
   const [isOpenDialog, setIsOpenDialog] = useState<boolean>(false);
   const [isOpenBoardDialog, setIsOpenBoardDialog] = useState<boolean>(false);
-  const [description, setDescription] = useState<string>("");
+  const [description, setDescription] = useState<BoardType["description"]>({
+    id: 0,
+    text: "",
+  });
+  const [editingTitle, setEditingTitle] = useState<string>("");
   const [newTitle, setNewTitle] = useState<string>("");
 
   const getStorageData = () => {
     return JSON.parse(localStorage.getItem("boards") || "[]");
   };
 
-  const getIdx = (storageData: BoardProps[]) => {
-    return storageData.findIndex((board: BoardProps) => board.id === id);
+  const getIdx = (storageData: BoardType[]) => {
+    return storageData.findIndex((board: BoardType) => board.id === id);
   };
 
   const createTodo = (e: object) => {
-    if (description === "") return;
+    if (description.text === "") return;
     if (e && "key" in e && e.key !== "Enter") return;
     const storageData = getStorageData();
     const idx = getIdx(storageData);
+
+    const newDescription = {
+      id: Date.now(),
+      text: description.text,
+    };
+
     if (!storageData[idx].description) {
-      storageData[idx].description = [description];
+      storageData[idx].description = [newDescription];
     } else {
-      storageData[idx].description.push(description);
+      storageData[idx].description.push(newDescription);
     }
     localStorage.setItem("boards", JSON.stringify(storageData));
-    setDescription("");
+    setDescription({ id: 0, text: "" });
     setIsOpenDialog(false);
   };
 
@@ -51,17 +70,18 @@ function Board({ title, id }: BoardProps) {
     setIsOpenBoardDialog(true);
     const storageData = getStorageData();
     const idx = getIdx(storageData);
-    setNewTitle(storageData[idx].title);
+    setEditingTitle(storageData[idx].title);
   };
 
   const updateTitle = (e: object) => {
-    if (newTitle === "") return;
+    if (editingTitle === "") return;
     if (e && "key" in e && e.key !== "Enter") return;
 
     const storageData = getStorageData();
     const idx = getIdx(storageData);
-    storageData[idx].title = newTitle;
+    storageData[idx].title = editingTitle;
     localStorage.setItem("boards", JSON.stringify(storageData));
+    setNewTitle(editingTitle);
     setIsOpenBoardDialog(false);
   };
 
@@ -71,8 +91,10 @@ function Board({ title, id }: BoardProps) {
 
   return (
     <div className="mt-10 p-6 w-auto bg-white border border-gray-200 rounded-lg shadow-sm">
-      <div className="flex items-center justify-between p-3 rounded-lg mb-4">
-        <p className="text-gray-800 font-medium">{newTitle}</p>
+      <div className="flex gap-2 p-3 rounded-lg mb-4">
+        <p className="text-gray-800 font-medium text-sm break-all w-40">
+          {newTitle}
+        </p>
         <div className="flex gap-2">
           <Pencil
             size={16}
@@ -81,7 +103,7 @@ function Board({ title, id }: BoardProps) {
           />
           <X
             size={16}
-            className="text-gray-400 hover:text-red-500 cursor-pointer transition-colors"
+            className="text-gray-400 hover:text-red-500 cursor-pointer transition-colors ml-auto"
           />
         </div>
       </div>
@@ -110,7 +132,10 @@ function Board({ title, id }: BoardProps) {
                   id="name"
                   placeholder="새 Todo 이름"
                   className="col-span-3"
-                  onChange={(e) => setDescription(e.target.value)}
+                  maxLength={300}
+                  onChange={(e) =>
+                    setDescription({ ...description, text: e.target.value })
+                  }
                   onKeyDown={(e) => createTodo(e)}
                 />
               </div>
@@ -140,8 +165,8 @@ function Board({ title, id }: BoardProps) {
                   id="name"
                   placeholder="새 타이틀 이름"
                   className="col-span-3"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
+                  value={editingTitle}
+                  onChange={(e) => setEditingTitle(e.target.value)}
                   onKeyDown={(e) => updateTitle(e)}
                 />
               </div>

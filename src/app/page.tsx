@@ -48,6 +48,7 @@ export default function Home() {
             type="text"
             placeholder="새 보드 이름"
             className="max-w-xs bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200"
+            maxLength={100}
             onChange={(e) => setTitle(e.target.value)}
             value={title}
           />
