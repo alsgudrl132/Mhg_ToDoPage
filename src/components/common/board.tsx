@@ -12,25 +12,17 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-label";
+import { BoardType, DescriptionType } from "@/types/board";
 
-interface BoardProps {
+interface OwnProps {
   id: number;
   title: string;
 }
 
-interface BoardType {
-  id: number;
-  title: string;
-  description: {
-    id: number;
-    text: string;
-  };
-}
-
-function Board({ title, id }: BoardProps) {
+function Board({ title, id }: OwnProps) {
   const [isOpenDialog, setIsOpenDialog] = useState<boolean>(false);
   const [isOpenBoardDialog, setIsOpenBoardDialog] = useState<boolean>(false);
-  const [description, setDescription] = useState<BoardType["description"]>({
+  const [description, setDescription] = useState<DescriptionType>({
     id: 0,
     text: "",
   });

@@ -4,29 +4,27 @@ import Board from "@/components/common/board";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
+import { BoardType } from "@/types/board";
 
 export default function Home() {
-  interface BoardType {
-    id: number;
-    title: string;
-  }
-
   const [title, setTitle] = useState<string>("");
   const [boards, setBoards] = useState<BoardType[]>([]);
 
   const createBoard = () => {
-    // 빈 값일 경우 추가하지 않음
     if (title === "") return;
+
+    const storageBoards = JSON.parse(localStorage.getItem("boards") || "[]");
+
     const newBoard: BoardType = {
       id: Date.now(),
       title: title,
     };
-    const curBoards = [...boards, newBoard];
-    setBoards(curBoards);
 
-    localStorage.setItem("boards", JSON.stringify(curBoards));
+    const updatedBoards = [...storageBoards, newBoard];
 
-    console.log(curBoards);
+    setBoards(updatedBoards);
+    localStorage.setItem("boards", JSON.stringify(updatedBoards));
+
     setTitle("");
   };
 

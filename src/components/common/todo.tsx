@@ -11,26 +11,13 @@ import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
 import { Button } from "../ui/button";
 import { useState } from "react";
+import { BoardType, DescriptionType } from "@/types/board";
 
-interface TodoProps {
+interface OwnProps {
   id: number;
 }
 
-interface BoardType {
-  id: number;
-  title: string;
-  description: {
-    id: number;
-    text: string;
-  }[];
-}
-
-interface DescriptionType {
-  id: number;
-  text: string;
-}
-
-function Todo({ id }: TodoProps) {
+function Todo({ id }: OwnProps) {
   const [newDescription, setNewDescription] = useState<string>("");
   const [isOpenTodoDialog, setIsOpenTodoDialog] = useState<boolean>(false);
   const [selectedTodoId, setSelectedTodoId] = useState<number>(0);
@@ -63,7 +50,10 @@ function Todo({ id }: TodoProps) {
 
     const storageData = getStorageData();
     const boardIdx = getIdx(storageData);
-    const todoIdx = storageData[boardIdx].description.findIndex(
+    if (!storageData[boardIdx].description) {
+      storageData[boardIdx].description = [];
+    }
+    const todoIdx = storageData[boardIdx].description!.findIndex(
       (desc: DescriptionType) => desc.id === selectedTodoId
     );
 
