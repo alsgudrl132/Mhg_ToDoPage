@@ -1,6 +1,6 @@
 "use client";
-import { Pencil, Plus, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { Pencil, X } from "lucide-react";
+import React, { useState } from "react";
 import Todo from "./todo";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,30 +13,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-label";
-import { Board } from "@/types/board";
+import { useBoardStore } from "@/store/useBoardStore";
 
 function BoardComponent() {
   const [board, setBoard] = useState<string>("");
-  const [localBoards, setLocalBoards] = useState<Board[]>([]);
   const [editingTitle, setEditingTitle] = useState<string>("");
   const [openDialogId, setOpenDialogId] = useState<number | null>(null);
 
-  useEffect(() => {
-    const storedBoards = localStorage.getItem("boards");
-    if (storedBoards) {
-      try {
-        const parsed = JSON.parse(storedBoards);
-        setLocalBoards(parsed);
-      } catch (error) {
-        console.error("Error parsing stored boards:", error);
-        localStorage.removeItem("boards");
-      }
-    }
-  }, []);
-
-  const updateLocalStorage = (boards: Board[]): void => {
-    localStorage.setItem("boards", JSON.stringify(boards));
-  };
+  const { boards, addBoard, editBoard, deleteBoard } = useBoardStore();
 
   const handelKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -44,49 +28,24 @@ function BoardComponent() {
     id?: number
   ): void => {
     if (e.key === "Enter" && option === "add") {
-      addBoard();
+      handleAddBoard();
     }
     if (id && e.key === "Enter" && option === "edit") {
-      editBoard(id);
+      handleEditBoard(id);
     }
   };
 
-  const addBoard = (): void => {
+  const handleAddBoard = (): void => {
     if (!board.trim()) return;
-
-    const newBoard: Board = {
-      id: Date.now(),
-      title: board.trim(),
-    };
-
-    setLocalBoards((prev) => {
-      const updated = [...prev, newBoard];
-      updateLocalStorage(updated);
-      return updated;
-    });
-
+    addBoard(board.trim());
     setBoard("");
   };
 
-  const editBoard = (id: number): void => {
+  const handleEditBoard = (id: number): void => {
     if (!editingTitle.trim()) return;
-    const idx = localBoards.findIndex((item) => item.id === id);
-    setLocalBoards((prevBoards) => {
-      const newBoards = [...prevBoards];
-      newBoards[idx] = { ...newBoards[idx], title: editingTitle.trim() };
-      updateLocalStorage(newBoards);
-      return newBoards;
-    });
+    editBoard(id, editingTitle.trim());
     setEditingTitle("");
     setOpenDialogId(null);
-  };
-
-  const deleteBoard = (id: number): void => {
-    setLocalBoards((prevBoards) => {
-      const filterBoards = prevBoards.filter((item) => item.id !== id);
-      updateLocalStorage(filterBoards);
-      return filterBoards;
-    });
   };
 
   return (
@@ -106,13 +65,13 @@ function BoardComponent() {
         <Button
           type="button"
           className="bg-blue-500 hover:bg-blue-600 text-white"
-          onClick={addBoard}
+          onClick={handleAddBoard}
         >
           보드 추가
         </Button>
       </div>
       <div className="flex gap-7 flex-wrap">
-        {localBoards.map((item) => (
+        {boards.map((item) => (
           <div
             key={item.id}
             className="mt-10 p-6 w-auto bg-white border border-gray-200 rounded-lg shadow-sm"
@@ -162,7 +121,7 @@ function BoardComponent() {
                       <Button
                         className="bg-blue-500 hover:bg-blue-600 text-white"
                         type="button"
-                        onClick={() => editBoard(item.id)}
+                        onClick={() => handleEditBoard(item.id)}
                       >
                         변경하기
                       </Button>

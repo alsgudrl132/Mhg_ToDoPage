@@ -1,9 +1,10 @@
 export interface Board {
   id: number;
   title: string;
+  contents: Content[];
 }
 
-export interface BoardDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
+export interface Content {
+  id: number;
+  text: string;
 }
