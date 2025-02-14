@@ -22,12 +22,46 @@ function Todo({ boardId }: TodoListProps) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [editingTodo, setEditingTodo] = useState<string>("");
   const [openDialogId, setOpenDialogId] = useState<number | boolean>(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
-  const { boards, addTodo, editTodo, deleteTodo } = useBoardStore();
+  const { boards, addTodo, editTodo, deleteTodo, dragTodoStart, dragTodoEnd } =
+    useBoardStore();
   const currentBoard = boards.find((board) => board.id === boardId);
   const contents = currentBoard?.contents || [];
 
-  const handelKeyDown = (
+  const handleTodoDragStart = (e: React.DragEvent, idx: number) => {
+    e.stopPropagation();
+    setIsDragging(true);
+    dragTodoStart(idx, boardId);
+  };
+
+  const handleTodoDragEnd = (e: React.DragEvent, idx: number) => {
+    e.stopPropagation();
+    setIsDragging(false);
+    setDragOver(false);
+    dragTodoEnd(idx, boardId);
+  };
+
+  const handleTodoDragOver = (e: React.DragEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!dragOver) setDragOver(true);
+  };
+
+  const handleTodoDragLeave = (e: React.DragEvent) => {
+    e.stopPropagation();
+    setDragOver(false);
+  };
+
+  const handleEmptyAreaDrop = (e: React.DragEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setDragOver(false);
+    dragTodoEnd(contents.length, boardId);
+  };
+
+  const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
     option: "add" | "edit",
     id?: number
@@ -55,10 +89,33 @@ function Todo({ boardId }: TodoListProps) {
   };
 
   return (
-    <div>
-      {contents.map((item) => (
+    <div
+      onDragOver={handleTodoDragOver}
+      onDragLeave={handleTodoDragLeave}
+      onDrop={handleEmptyAreaDrop}
+      className={`min-h-[50px] p-2 ${dragOver ? "bg-gray-100 rounded-lg" : ""}`}
+    >
+      {contents.map((item, idx) => (
         <div key={item.id}>
-          <div className="flex gap-2 p-3 rounded-lg mb-3 bg-gray-50 hover:bg-gray-100 transition-colors w-52">
+          <div
+            className={`flex gap-2 p-3 rounded-lg mb-3 bg-gray-50 hover:bg-gray-100 transition-colors w-52 cursor-move
+             ${
+               isDragging
+                 ? "opacity-50 border-2 border-dashed border-gray-300"
+                 : ""
+             }`}
+            draggable={true}
+            onDragStart={(e) => handleTodoDragStart(e, idx)}
+            onDragEnd={(e) => handleTodoDragEnd(e, idx)}
+            onDragOver={handleTodoDragOver}
+            onDragLeave={handleTodoDragLeave}
+            onDrop={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setDragOver(false);
+              dragTodoEnd(idx, boardId);
+            }}
+          >
             <p className="text-gray-700 text-sm break-all w-40">{item.text}</p>
             <div className="flex gap-2">
               <Pencil
@@ -97,7 +154,7 @@ function Todo({ boardId }: TodoListProps) {
                     value={editingTodo}
                     onChange={(e) => setEditingTodo(e.target.value)}
                     onKeyDown={(e) => {
-                      handelKeyDown(e, "edit", item.id);
+                      handleKeyDown(e, "edit", item.id);
                     }}
                   />
                 </div>
@@ -140,7 +197,7 @@ function Todo({ boardId }: TodoListProps) {
                 maxLength={300}
                 value={todo}
                 onChange={(e) => setTodo(e.target.value)}
-                onKeyDown={(e) => handelKeyDown(e, "add")}
+                onKeyDown={(e) => handleKeyDown(e, "add")}
               />
             </div>
           </div>

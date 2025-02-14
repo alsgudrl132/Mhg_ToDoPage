@@ -4,18 +4,115 @@ import { Board } from "@/types/board";
 
 interface BoardState {
   boards: Board[];
+  dragStartIndex: number | null;
+  dragEndIndex: number | null;
+  todoDragStartIndex: number | null;
+  todoDragEndIndex: number | null;
+  dragSourceBoardId: number | null;
   addBoard: (title: string) => void;
   editBoard: (id: number, title: string) => void;
   deleteBoard: (id: number) => void;
   addTodo: (boardId: number, text: string) => void;
   editTodo: (boardId: number, todoId: number, text: string) => void;
   deleteTodo: (boardId: number, todoId: number) => void;
+  dragBoardStart: (idx: number) => void;
+  dragBoardEnd: (idx: number) => void;
+  dragTodoStart: (idx: number, boardId: number) => void;
+  dragTodoEnd: (idx: number, boardId: number) => void;
 }
 
 export const useBoardStore = create<BoardState>()(
   persist(
     (set) => ({
       boards: [],
+      dragStartIndex: null,
+      dragEndIndex: null,
+      todoDragStartIndex: null,
+      todoDragEndIndex: null,
+      dragSourceBoardId: null,
+
+      dragBoardStart: (idx) => {
+        set({ dragStartIndex: idx });
+      },
+
+      dragBoardEnd: (idx) => {
+        set((state) => {
+          if (state.dragStartIndex === null) return state;
+
+          const newBoards = [...state.boards];
+          const [draggedBoard] = newBoards.splice(state.dragStartIndex, 1);
+          newBoards.splice(idx, 0, draggedBoard);
+
+          return {
+            boards: newBoards,
+            dragStartIndex: null,
+            dragEndIndex: null,
+          };
+        });
+      },
+
+      dragTodoStart: (idx: number, boardId: number) => {
+        console.log("drag start - idx:", idx, "boardId:", boardId);
+        set({
+          todoDragStartIndex: idx,
+          dragSourceBoardId: boardId,
+        });
+      },
+
+      dragTodoEnd: (idx: number, targetBoardId: number) => {
+        console.log("drag end - idx:", idx, "targetBoardId:", targetBoardId);
+
+        set((state) => {
+          const startIndex = state.todoDragStartIndex;
+          const sourceBoardId = state.dragSourceBoardId;
+
+          if (startIndex === null || sourceBoardId === null) {
+            console.log("Invalid state", { startIndex, sourceBoardId });
+            return state;
+          }
+
+          const newBoards = [...state.boards];
+
+          const sourceBoardIndex = newBoards.findIndex(
+            (board) => board.id === sourceBoardId
+          );
+          const targetBoardIndex = newBoards.findIndex(
+            (board) => board.id === targetBoardId
+          );
+
+          if (sourceBoardIndex === -1 || targetBoardIndex === -1) {
+            console.log("Board not found", {
+              sourceBoardIndex,
+              targetBoardIndex,
+            });
+            return state;
+          }
+
+          const todoToMove = {
+            ...newBoards[sourceBoardIndex].contents[startIndex],
+          };
+
+          if (!todoToMove) {
+            console.log("Todo not found");
+            return state;
+          }
+
+          newBoards[sourceBoardIndex].contents = newBoards[
+            sourceBoardIndex
+          ].contents.filter((_, index) => index !== startIndex);
+
+          newBoards[targetBoardIndex].contents.splice(idx, 0, todoToMove);
+
+          console.log("Updated boards:", newBoards);
+
+          return {
+            ...state,
+            boards: newBoards,
+            todoDragStartIndex: null,
+            dragSourceBoardId: null,
+          };
+        });
+      },
 
       addBoard: (title) =>
         set((state) => ({
