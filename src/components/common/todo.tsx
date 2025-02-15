@@ -34,6 +34,7 @@ function Todo({ boardId }: TodoListProps) {
     e.stopPropagation();
     setIsDragging(true);
     dragTodoStart(idx, boardId);
+    setIsDragging(false);
   };
 
   const handleTodoDragEnd = (e: React.DragEvent, idx: number) => {
@@ -66,6 +67,8 @@ function Todo({ boardId }: TodoListProps) {
     option: "add" | "edit",
     id?: number
   ): void => {
+    if (e.nativeEvent.isComposing) return;
+
     if (e.key === "Enter" && option === "add") {
       handleAddTodo();
     }
@@ -75,17 +78,32 @@ function Todo({ boardId }: TodoListProps) {
   };
 
   const handleAddTodo = () => {
-    if (!todo.trim()) return;
+    if (!todo.trim()) {
+      alert("투두 내용을 입력해주세요.");
+      return;
+    }
     addTodo(boardId, todo.trim());
     setTodo("");
     setIsOpen(false);
+    alert("새로운 투두가 추가되었습니다.");
   };
 
   const handleEditTodo = (todoId: number) => {
-    if (!editingTodo.trim()) return;
+    if (!editingTodo.trim()) {
+      alert("투두 내용을 입력해주세요.");
+      return;
+    }
     editTodo(boardId, todoId, editingTodo.trim());
     setEditingTodo("");
     setOpenDialogId(false);
+    alert("투두가 수정되었습니다.");
+  };
+
+  const handleDeleteTodo = (todoId: number) => {
+    if (window.confirm("정말로 이 투두를 삭제하시겠습니까?")) {
+      deleteTodo(boardId, todoId);
+      alert("투두가 삭제되었습니다.");
+    }
   };
 
   return (
@@ -98,7 +116,7 @@ function Todo({ boardId }: TodoListProps) {
       {contents.map((item, idx) => (
         <div key={item.id}>
           <div
-            className={`flex gap-2 p-3 rounded-lg mb-3 bg-gray-50 hover:bg-gray-100 transition-colors w-52 cursor-move
+            className={`flex gap-2 p-3 rounded-lg mb-3 bg-gray-50 hover:bg-gray-100 transition-colors w-full sm:w-52 cursor-move
              ${
                isDragging
                  ? "opacity-50 border-2 border-dashed border-gray-300"
@@ -116,62 +134,66 @@ function Todo({ boardId }: TodoListProps) {
               dragTodoEnd(idx, boardId);
             }}
           >
-            <p className="text-gray-700 text-sm break-all w-40">{item.text}</p>
-            <div className="flex gap-2">
-              <Pencil
-                size={16}
-                className="text-gray-400 hover:text-blue-500 cursor-pointer transition-colors"
-                onClick={() => {
-                  setEditingTodo(item.text);
-                  setOpenDialogId(item.id);
+            <p className="text-gray-700 text-sm break-all flex-1">
+              {item.text}
+            </p>
+            <div className="flex gap-2 ml-2">
+              <Dialog
+                open={openDialogId === item.id}
+                onOpenChange={(open) => {
+                  setOpenDialogId(open ? item.id : false);
+                  if (open) {
+                    setEditingTodo(item.text);
+                  }
                 }}
-              />
+              >
+                <DialogTrigger asChild>
+                  <Pencil
+                    size={16}
+                    className="text-gray-400 hover:text-blue-500 cursor-pointer transition-colors"
+                  />
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Todo 수정</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="name" className="text-right">
+                        Todo
+                      </Label>
+                      <Input
+                        id="name"
+                        placeholder="Todo 내용"
+                        className="col-span-3"
+                        value={editingTodo}
+                        onChange={(e) => setEditingTodo(e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, "edit", item.id)}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      className="bg-blue-500 hover:bg-blue-600 text-white"
+                      type="button"
+                      onClick={() => handleEditTodo(item.id)}
+                    >
+                      수정하기
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
               <X
                 size={16}
-                className="text-gray-400 hover:text-red-500 cursor-pointer transition-colors ml-auto"
-                onClick={() => deleteTodo(boardId, item.id)}
+                className="text-gray-400 hover:text-red-500 cursor-pointer transition-colors"
+                onClick={() => handleDeleteTodo(item.id)}
               />
             </div>
           </div>
-
-          <Dialog
-            open={openDialogId === item.id}
-            onOpenChange={(open) => !open && setOpenDialogId(false)}
-          >
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Todo 수정</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">
-                    Todo
-                  </Label>
-                  <Input
-                    id="name"
-                    placeholder="Todo 내용"
-                    className="col-span-3"
-                    value={editingTodo}
-                    onChange={(e) => setEditingTodo(e.target.value)}
-                    onKeyDown={(e) => {
-                      handleKeyDown(e, "edit", item.id);
-                    }}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
-                  type="submit"
-                  onClick={() => handleEditTodo(item.id)}
-                >
-                  수정하기
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
         </div>
       ))}
+
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <Button
@@ -204,7 +226,7 @@ function Todo({ boardId }: TodoListProps) {
           <DialogFooter>
             <Button
               className="bg-blue-500 hover:bg-blue-600 text-white"
-              type="submit"
+              type="button"
               onClick={handleAddTodo}
             >
               추가하기

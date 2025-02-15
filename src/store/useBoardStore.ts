@@ -52,7 +52,6 @@ export const useBoardStore = create<BoardState>()(
       },
 
       dragTodoStart: (idx: number, boardId: number) => {
-        console.log("drag start - idx:", idx, "boardId:", boardId);
         set({
           todoDragStartIndex: idx,
           dragSourceBoardId: boardId,
@@ -60,19 +59,15 @@ export const useBoardStore = create<BoardState>()(
       },
 
       dragTodoEnd: (idx: number, targetBoardId: number) => {
-        console.log("drag end - idx:", idx, "targetBoardId:", targetBoardId);
-
         set((state) => {
           const startIndex = state.todoDragStartIndex;
           const sourceBoardId = state.dragSourceBoardId;
 
           if (startIndex === null || sourceBoardId === null) {
-            console.log("Invalid state", { startIndex, sourceBoardId });
             return state;
           }
 
           const newBoards = [...state.boards];
-
           const sourceBoardIndex = newBoards.findIndex(
             (board) => board.id === sourceBoardId
           );
@@ -81,10 +76,6 @@ export const useBoardStore = create<BoardState>()(
           );
 
           if (sourceBoardIndex === -1 || targetBoardIndex === -1) {
-            console.log("Board not found", {
-              sourceBoardIndex,
-              targetBoardIndex,
-            });
             return state;
           }
 
@@ -93,7 +84,6 @@ export const useBoardStore = create<BoardState>()(
           };
 
           if (!todoToMove) {
-            console.log("Todo not found");
             return state;
           }
 
@@ -102,8 +92,6 @@ export const useBoardStore = create<BoardState>()(
           ].contents.filter((_, index) => index !== startIndex);
 
           newBoards[targetBoardIndex].contents.splice(idx, 0, todoToMove);
-
-          console.log("Updated boards:", newBoards);
 
           return {
             ...state,
@@ -114,15 +102,29 @@ export const useBoardStore = create<BoardState>()(
         });
       },
 
-      addBoard: (title) =>
-        set((state) => ({
-          boards: [...state.boards, { id: Date.now(), title, contents: [] }],
-        })),
+      addBoard: (title) => {
+        const trimmedTitle = title.trim();
+        if (!trimmedTitle) return;
+
+        set((state) => {
+          const isDuplicate = state.boards.some(
+            (board) => board.title === trimmedTitle
+          );
+          if (isDuplicate) return state;
+
+          return {
+            boards: [
+              ...state.boards,
+              { id: Date.now(), title: trimmedTitle, contents: [] },
+            ],
+          };
+        });
+      },
 
       editBoard: (id, title) =>
         set((state) => ({
           boards: state.boards.map((board) =>
-            board.id === id ? { ...board, title } : board
+            board.id === id ? { ...board, title: title.trim() } : board
           ),
         })),
 
@@ -131,17 +133,24 @@ export const useBoardStore = create<BoardState>()(
           boards: state.boards.filter((board) => board.id !== id),
         })),
 
-      addTodo: (boardId, text) =>
+      addTodo: (boardId, text) => {
+        const trimmedText = text.trim();
+        if (!trimmedText) return;
+
         set((state) => ({
           boards: state.boards.map((board) =>
             board.id === boardId
               ? {
                   ...board,
-                  contents: [...board.contents, { id: Date.now(), text }],
+                  contents: [
+                    ...board.contents,
+                    { id: Date.now(), text: trimmedText },
+                  ],
                 }
               : board
           ),
-        })),
+        }));
+      },
 
       editTodo: (boardId, todoId, text) =>
         set((state) => ({
@@ -150,7 +159,7 @@ export const useBoardStore = create<BoardState>()(
               ? {
                   ...board,
                   contents: board.contents.map((todo) =>
-                    todo.id === todoId ? { ...todo, text } : todo
+                    todo.id === todoId ? { ...todo, text: text.trim() } : todo
                   ),
                 }
               : board
