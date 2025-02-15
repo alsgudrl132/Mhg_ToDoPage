@@ -167,6 +167,7 @@ function Todo({ boardId }: TodoListProps) {
                         placeholder="Todo 내용"
                         className="col-span-3"
                         value={editingTodo}
+                        maxLength={300}
                         onChange={(e) => setEditingTodo(e.target.value)}
                         onKeyDown={(e) => handleKeyDown(e, "edit", item.id)}
                       />

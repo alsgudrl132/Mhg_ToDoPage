@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 칸반 스타일 투두 리스트
 
-## Getting Started
+## 사용된 기술 스택
 
-First, run the development server:
+- Next.js 14.2.24
+- Tailwind CSS 3.4.1
+- shadcn/ui components
+- Zustand 5.0.3
+- Lucide React 0.475.0
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 구현된 요구사항
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 보드 기능
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- 보드 생성
+- 보드 수정
+- 보드 삭제
+- 보드 순서 변경 (드래그 앤 드롭)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 할 일 기능
 
-## Learn More
+- 텍스트 박스를 가진 할 일 생성
+- 할 일 수정
+- 할 일 삭제
+- 할 일 위치 변경
+- 보드 내에서 순서 변경
+- 다른 보드로 이동
 
-To learn more about Next.js, take a look at the following resources:
+### 데이터 저장
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- LocalStorage를 통한 데이터 유지

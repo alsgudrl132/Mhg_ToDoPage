@@ -167,6 +167,7 @@ function Board() {
                             setEditingTitle(e.target.value)
                           }
                           onKeyDown={(e) => handleKeyDown(e, "edit", item.id)}
+                          maxLength={100}
                         />
                       </div>
                     </div>
